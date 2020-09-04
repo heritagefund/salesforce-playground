@@ -1,0 +1,26 @@
+<template>
+
+    <lightning-card title="Migrated Attachments from GEMS" icon-name="custom:custom13">
+
+        <div class="slds-m-around_medium">
+
+            <template if:true={customAttachments.data}>
+
+                <lightning-datatable
+                    key-field="id"
+                    data={customAttachments.data}
+                    columns={columns}
+                    onrowaction={handleRowAction}
+                    hide-checkbox-column="true"
+                ></lightning-datatable>
+
+            </template>
+            
+            <template if:true={customAttachments.error}>
+                {customAttachments.error}
+            </template>
+
+        </div>
+
+    </lightning-card>
+</template>
