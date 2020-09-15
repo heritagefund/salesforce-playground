@@ -64,7 +64,8 @@ global with sharing class AzureBlobStorageController {
      * @example
      * String currentTime = AzureBlobStorageController.getFormattedTimestamp();
      */
-    private static String getFormattedTimestamp() {
+    @AuraEnabled(cacheable=true)
+    global static String getFormattedTimestamp() {
 
         datetime currentTimestamp = datetime.now();
 
@@ -82,13 +83,14 @@ global with sharing class AzureBlobStorageController {
      * @example
      * String mySharedKey = AzureBlobStorageController.constructSharedKey('formattedTimestamp', 'myStorageAccount', 'myContainer', 'AB-12-34567/governing-documents/test.txt');
      */
-    private static String constructSharedKey(String timestamp, String storageAccountName, String containerName, String fileName) {
+    @AuraEnabled(cacheable=true)
+    global static String constructSharedKey(String timestamp, String storageAccountName, String containerName, String fileName) {
 
         // Key from Microsoft Azure (TODO: Get from an environment variable)
-        String key = 'ACCESS_KEY';
+        String key = 'ACCESS KEY';
 
         // Construct the string to sign
-        String strToSign = 'GET\n\n\n\nx-ms-date:' + timestamp + '\n/STORAGE_ACCOUNT_NAME/CONTAINER_NAME/' + fileName;
+        String strToSign = 'GET\n\n\n\nx-ms-date:' + timestamp + '\n/' + storageAccountName + '/' + containerName + '/' + fileName;
 
         Blob hmac = Crypto.generateMac(
             'HMacSHA256',
@@ -99,6 +101,21 @@ global with sharing class AzureBlobStorageController {
         // Return the base64 encoded signatrue
         return EncodingUtil.base64Encode(hmac);
 
+    }
+
+     /**
+     * @description Returns the auth key to access Azure Blob Storage.
+     * @param caseId the GEMS case reference which forms part of the unique file identifier
+     * @param documentType the type of document which forms part of the unique file identifier
+     * @param fileName the type of document which forms part of the unique file identifier
+     * @return A string containing the shared key
+     */
+    @AuraEnabled (cacheable=true)
+    public static String getAuthDetails(String caseId, String documentType, String fileName, String formattedTimestamp){
+        
+        // Todo - get the storage account and container name from environment variables.
+        return constructSharedKey(formattedTimestamp, 'STORAGE_ACCOUNT_NAME', 'CONTAINER_NAME', caseId + '/' + documentType + '/' + fileName);
+        
     }
 
 }
